@@ -1,11 +1,12 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpEventType, HttpHeaders, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Post } from "./post.module";
-import { map } from "rxjs/operators";
+import { map ,catchError ,tap} from "rxjs/operators";
+import { pipe, Subject,throwError } from "rxjs";
 
 @Injectable({providedIn: 'root'})
 export class PostsService {
-
+    error=new Subject<string>();
 
     constructor(private http: HttpClient){}
 
@@ -16,17 +17,33 @@ export class PostsService {
     this.http
   .post<{name: string}>(
     'https://template-project-d3fdd-default-rtdb.firebaseio.com/posts.json',
-    postData
+    postData,
+    {
+      observe: 'response'
+    }
+
     )
     .subscribe(responseData => {
       console.log(responseData);
+    },error=>{
+      this.error.next(error.message);
     });
  }
 
 fetchPosts(){
-    this.http
+  let searchParams=new HttpParams();
+  searchParams = searchParams.append('print','pretty');
+  searchParams=searchParams.append('custom','key');
+   return this.http
     .get<{[key:string]: Post}>(
-      'https://template-project-d3fdd-default-rtdb.firebaseio.com/posts.json')
+      'https://template-project-d3fdd-default-rtdb.firebaseio.com/posts.json',
+      //setting headers
+      {
+      headers: new HttpHeaders({'Custom-Header': 'Hello'}),
+      params: searchParams,
+      responseType: 'json'
+      }
+      )
     .pipe(
       map(responseData => {
       const postsArray :Post[] = [];
@@ -36,10 +53,30 @@ fetchPosts(){
         }
       }
       return postsArray;
+    }),
+    catchError(errorRes => {
+      return throwError(errorRes);
     })
-    )
-    .subscribe(posts =>{
-          //console.log(posts);
-    });
+    )   
+
+   
 }
+deletePosts(){
+  return this.http.delete('https://template-project-d3fdd-default-rtdb.firebaseio.com/posts.json',
+  {
+  observe: 'events',
+  responseType: 'text'
+  }
+  ).pipe
+  (tap(event => {
+    console.log(event);
+    if(event.type === HttpEventType.Sent){
+      //console.log(event.type)
+    }
+    if(event.type ===HttpEventType.Response){
+      console.log(event.body);
+    }
+  }
+    ));
+ }
 }

@@ -5,16 +5,16 @@
 
         <div class="form-group">
           <label for="tittle" style="font-size: 30px;">Tittle</label>
-          <input type="text" class="form-control"  id="title" required ngModel name="title">
+          <input type="text" class="form-control" id="title" required ngModel name="title">
         </div>
 
         <div class="form-group">
-          <label for="content" style="font-size: 30px;" >Content</label>
+          <label for="content" style="font-size: 30px;">Content</label>
           <textarea name="content" id="content" class="form-control" required ngModel></textarea>
         </div>
         <br>
         <div>
-          <button  class="btn btn-primary"  type="submit" [disabled]="!postForm.valid">Send Data</button>
+          <button class="btn btn-primary" type="submit" [disabled]="!postForm.valid">Send Data</button>
         </div>
         <hr>
       </form>
@@ -38,7 +38,13 @@
           <p>{{post.content}}</p>
         </li>
       </ul>
-      <p *ngIf="isFetching">Loading...</p>
+      <p *ngIf="isFetching && !error">Loading...</p>
+      <div class="alert alert-danger" *ngIf="error">
+        <h1>An Error Occurred!</h1>
+        <p>{{error}}</p>
+        <button class="btn btn-danger" (click)="onHandleError()">Okay</button>
+      </div>
+
     </div>
   </div>
 </div>
